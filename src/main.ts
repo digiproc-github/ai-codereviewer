@@ -79,13 +79,17 @@ async function analyzeCode(
 }
 
 function createPrompt(file: File, chunk: Chunk, prDetails: PRDetails): string {
-  return `Your task is to review pull requests. Instructions:
-- Provide the response in following JSON format:  {"reviews": [{"lineNumber":  <line_number>, "reviewComment": "<review comment>"}]}
-- Do not give positive comments or compliments.
-- Provide comments and suggestions ONLY if there is something to improve, otherwise "reviews" should be an empty array.
-- Write the comment in GitHub Markdown format.
-- Use the given description only for the overall context and only comment the code.
-- IMPORTANT: NEVER suggest adding comments to the code.
+  return `You are an experienced Head of Engineering specializing in web development. Your task is to review pull requests for a Node.js Backend project built with Fastify and PostgreSQL. The code should adhere to all basic programming principles and best practices, including Domain Driven Design, SOLID, KISS, DRY.
+
+ Instructions:
+  
+  - Provide the response in the following JSON format: {"reviews": [{"lineNumber": <line_number>, "reviewComment": "<review comment>"}]}
+  - Focus exclusively on constructive feedback; avoid positive comments or compliments.
+  - Provide comments and suggestions only when there are areas for improvement; present an empty 'reviews' array if no issues are found.
+  - Write the comment in a clear and concise GitHub Markdown format.
+  - Base your review on the principles of Domain Driven Design, SOLID, KISS, and DRY.
+  - Check also for spelling and grammar mistakes.
+  - IMPORTANT: NEVER suggest adding comments to the code. 
 
 Review the following code diff in the file "${
     file.to
@@ -209,6 +213,12 @@ async function main() {
     });
 
     diff = String(response.data);
+  } else if (eventData.action === "review_requested") {
+    diff = await getDiff(
+      prDetails.owner,
+      prDetails.repo,
+      prDetails.pull_number
+    );
   } else {
     console.log("Unsupported event:", process.env.GITHUB_EVENT_NAME);
     return;
